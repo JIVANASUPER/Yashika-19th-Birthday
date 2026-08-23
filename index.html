@@ -24,6 +24,7 @@ body {
   background: var(--bg);
   color: var(--white);
   overflow-x: hidden;
+  width: 100%;
   cursor: none;
 }
 
@@ -65,6 +66,7 @@ body {
 section {
   position: relative; z-index: 3;
   min-height: 100vh;
+  min-height: 100svh; /* real viewport on mobile browsers, no chrome-bar jump */
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   padding: 80px 24px;
@@ -508,9 +510,50 @@ section {
 
 @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
 
+/* ── TOUCH DEVICES: kill the custom mouse cursor ── */
+@media (hover: none), (pointer: coarse) {
+  body { cursor: auto; }
+  .cur, .cur-ring { display: none !important; }
+}
+
+/* ── MOBILE LAYOUT TUNING ── */
 @media (max-width: 600px) {
+  section { padding: 56px 20px; }
+
   .env-btn { padding: 36px 24px; }
   .note-card { padding: 36px 22px; }
+
+  .hero-balloons { padding: 16px 20px; }
+  .hero-bottom-deco { bottom: 40px; font-size: 0.85rem; gap: 10px; }
+  .opener-cake { font-size: 3rem; }
+  .opener-banner { margin-bottom: 4px; }
+  .opener-age { margin-bottom: 20px; }
+
+  .open-btn { padding: 14px 32px; font-size: 0.72rem; }
+
+  .photo-frame { padding: 8px; border-radius: 14px; }
+  .photo-frame img { border-radius: 8px; }
+  .portrait-frame { max-width: 240px; }
+  .frame-corner { width: 18px; height: 18px; }
+
+  .music-btn {
+    width: 44px; height: 44px; font-size: 1rem;
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    right: 18px;
+  }
+
+  #audio-debug { max-width: calc(100vw - 28px); font-size: 0.7rem; }
+
+  .pin-input { width: 140px; font-size: 1.25rem; letter-spacing: .5em; }
+
+  .let-p, .note-p { font-size: 0.95rem; line-height: 1.8; }
+
+  .scroll-more { bottom: 12px; }
+}
+
+@media (max-width: 380px) {
+  .hero-balloons { font-size: 1.2rem; padding: 14px 16px; }
+  .portrait-frame { max-width: 200px; }
 }
 </style>
 </head>
