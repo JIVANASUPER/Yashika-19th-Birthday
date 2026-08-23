@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Birthday, Yashika Kutty</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #060810;
+  --blue:   #4fa3e8;
+  --glow:   #7ec8ff;
+  --white:  #f0f7ff;
+  --mid:    #2a6aad;
+  --dim:    rgba(240,247,255,0.5);
+  --pulse:  0;          /* JS writes this 0–1 every frame */
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Lato', sans-serif;
+  background: var(--bg);
+  color: var(--white);
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ── CURSOR ── */
+.cur {
+  width: 10px; height: 10px; background: var(--glow);
+  border-radius: 50%; position: fixed; pointer-events: none;
+  z-index: 9999; transform: translate(-50%,-50%);
+  mix-blend-mode: screen;
+}
+.cur-ring {
+  width: 30px; height: 30px;
+  border: 1px solid rgba(126,200,255,0.4); border-radius: 50%;
+  position: fixed; pointer-events: none; z-index: 9998;
+  transform: translate(-50%,-50%);
+  transition: left .09s ease-out, top .09s ease-out;
+}
+
+/* ── VISUALIZER CANVAS (fixed behind everything) ── */
+#viz { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+/* ── STAR CANVAS ── */
+#stars { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+
+/* ── FLOATING PARTICLES ── */
+.ptcls { position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+.pt {
+  position: absolute; bottom: -20px; opacity: 0;
+  animation: ptRise linear infinite;
+}
+@keyframes ptRise {
+  0%   { transform: translateY(0) scale(1);    opacity: 0; }
+  10%  { opacity: .6; }
+  90%  { opacity: .2; }
+  100% { transform: translateY(-110vh) scale(.5); opacity: 0; }
+}
+
+/* ── SECTIONS ── */
+section {
+  position: relative; z-index: 3;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 80px 24px;
+  text-align: center;
+}
+
+/* ── OPENING OVERLAY ── */
+#opener {
+  position: fixed; inset: 0; z-index: 1000;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 24px;
+}
+.open-title {
+  font-family: 'Playfair Display', serif; font-style: italic;
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+  color: var(--dim); letter-spacing: 0.1em;
+}
+.open-btn {
+  background: none; border: 1.5px solid var(--blue);
+  color: var(--glow); font-family: 'Lato', sans-serif;
+  font-size: 0.8rem; letter-spacing: 0.35em; text-transform: uppercase;
+  padding: 16px 40px; border-radius: 50px; cursor: pointer;
+  transition: all .3s; position: relative; overflow: hidden;
+}
+.open-btn::before {
+  content: ''; position: absolute; inset: 0;
+  background: rgba(79,163,232,0.1);
+  transform: scaleX(0); transform-origin: left;
+  transition: transform .3s ease;
+}
+.open-btn:hover::before { transform: scaleX(1); }
+.open-btn:hover { border-color: var(--glow); box-shadow: 0 0 24px rgba(126,200,255,0.3); }
+.open-note {
+  font-size: 0.65rem; letter-spacing: 0.2em; color: rgba(255,255,255,0.2);
+  text-transform: uppercase;
+}
+#opener.hide { animation: openerOut .8s ease forwards; }
+@keyframes openerOut {
+  to { opacity: 0; transform: scale(1.04); pointer-events: none; }
+}
+
+/* ── HERO ── */
+#hero { gap: 0; }
+
+.hero-tag {
+  font-size: 0.65rem; letter-spacing: 0.5em; text-transform: uppercase;
+  color: var(--blue); margin-bottom: 16px;
+  opacity: 0; animation: fadeUp .8s 0.2s forwards;
+}
+.hero-name {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(3rem, 12vw, 9rem);
+  font-weight: 900; line-height: .95;
+  color: var(--white);
+  text-shadow: 0 0 60px rgba(126,200,255,0);
+  opacity: 0; animation: fadeUp 1s 0.5s forwards;
+  transition: text-shadow .05s ease, transform .05s ease;
+  will-change: text-shadow, transform;
+}
+.hero-name em { font-style: italic; color: var(--glow); display: block; }
+.hero-sub {
+  margin-top: 20px; font-size: clamp(1rem, 2.5vw, 1.3rem);
+  color: var(--dim); font-weight: 300; max-width: 520px;
+  opacity: 0; animation: fadeUp .8s .9s forwards;
+}
+.hero-date {
+  margin-top: 16px; font-size: 0.7rem; letter-spacing: 0.35em;
+  text-transform: uppercase; color: var(--blue);
+  opacity: 0; animation: fadeUp .8s 1.1s forwards;
+}
+
+/* Beat ring around hero name */
+.beat-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(126,200,255,0);
+  pointer-events: none;
+  transition: transform .05s ease, border-color .05s ease, opacity .05s ease;
+  will-change: transform, opacity, border-color;
+}
+
+/* ── LETTER SECTION ── */
+#letter-section { background: rgba(10,16,32,0.6); }
+.sec-eyebrow {
+  font-size: 0.65rem; letter-spacing: 0.45em; text-transform: uppercase;
+  color: var(--blue); margin-bottom: 20px;
+  opacity: 0; transform: translateY(12px);
+  transition: opacity .7s ease, transform .7s ease;
+}
+.sec-eyebrow.in { opacity: 1; transform: translateY(0); }
+
+.envelope-wrap {
+  max-width: 640px; width: 100%;
+  opacity: 0; transform: translateY(20px);
+  transition: opacity .8s .1s ease, transform .8s .1s ease;
+}
+.envelope-wrap.in { opacity: 1; transform: translateY(0); }
+
+.env-btn {
+  width: 100%; background: rgba(79,163,232,0.06);
+  border: 1.5px solid rgba(79,163,232,0.25);
+  border-radius: 20px; padding: 48px 40px;
+  cursor: pointer; text-align: left;
+  transition: border-color .3s, background .3s, box-shadow .3s, transform .05s ease;
+  position: relative; overflow: hidden;
+  will-change: transform, box-shadow;
+}
+.env-btn:hover {
+  border-color: var(--blue);
+  background: rgba(79,163,232,0.1);
+  box-shadow: 0 0 32px rgba(79,163,232,0.15);
+}
+.env-icon { font-size: 2.4rem; margin-bottom: 14px; display: block; }
+.env-h { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--white); margin-bottom: 6px; }
+.env-s { font-size: 0.75rem; color: var(--dim); letter-spacing: 0.12em; }
+.env-rip {
+  position: absolute; border-radius: 50%;
+  background: rgba(126,200,255,0.15); transform: scale(0);
+  animation: rip .7s linear; pointer-events: none;
+}
+@keyframes rip { to { transform: scale(5); opacity: 0; } }
+
+.open-letter { display: none; text-align: left; }
+.open-letter.show { display: block; animation: letIn .6s ease; }
+@keyframes letIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.let-greeting {
+  font-family: 'Playfair Display', serif; font-style: italic;
+  font-size: 1.5rem; color: var(--glow); margin-bottom: 24px;
+}
+.let-p {
+  font-size: 1.02rem; line-height: 1.9;
+  color: rgba(240,247,255,0.78); font-weight: 300; margin-bottom: 18px;
+}
+.let-ph {
+  border-left: 2px solid var(--blue); padding: 18px 22px;
+  background: rgba(79,163,232,0.07); border-radius: 0 12px 12px 0;
+  color: rgba(126,200,255,0.5); font-style: italic; font-size: .95rem;
+  line-height: 1.7; margin: 20px 0;
+}
+.let-sign { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.1rem; color: var(--blue); }
+.close-btn {
+  margin-top: 22px; background: none;
+  border: 1px solid rgba(79,163,232,0.3); border-radius: 50px;
+  padding: 8px 22px; color: var(--dim);
+  font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase;
+  cursor: pointer; transition: all .2s; font-family: 'Lato', sans-serif;
+}
+.close-btn:hover { border-color: var(--blue); color: var(--glow); }
+
+/* ── NOTE SECTION ── */
+#note-section { background: var(--bg); }
+.note-card {
+  max-width: 680px; width: 100%;
+  background: rgba(79,163,232,0.05);
+  border: 1px solid rgba(79,163,232,0.15);
+  border-radius: 24px; padding: 52px 44px;
+  opacity: 0; transform: translateY(20px);
+  transition: opacity .9s ease, transform .9s ease,
+              box-shadow .05s ease, border-color .05s ease;
+  will-change: box-shadow, border-color;
+}
+.note-card.in { opacity: 1; transform: translateY(0); }
+.note-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  color: var(--white); margin-bottom: 24px; line-height: 1.2;
+  transition: text-shadow .05s ease;
+  will-change: text-shadow;
+}
+.note-title em { color: var(--glow); font-style: italic; }
+.note-p {
+  font-size: 1rem; line-height: 1.9;
+  color: rgba(240,247,255,0.72); font-weight: 300; margin-bottom: 16px;
+  text-align: left;
+}
+.note-ph {
+  margin-top: 24px; padding: 20px 24px;
+  border: 1.5px dashed rgba(79,163,232,0.25); border-radius: 14px;
+  color: rgba(126,200,255,0.35); font-style: italic;
+  font-size: .9rem; line-height: 1.7; text-align: left;
+}
+
+/* ── NOTE SECTION PIN LOCK ── */
+.note-lock {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px; padding: 18px 0;
+}
+.lock-icon { font-size: 2.6rem; margin-bottom: 8px; opacity: .85; }
+.lock-title {
+  font-family: 'Playfair Display', serif; font-style: italic;
+  font-size: 1.3rem; color: var(--white); margin-bottom: 2px;
+}
+.lock-sub {
+  font-size: .7rem; letter-spacing: .3em; text-transform: uppercase;
+  color: var(--dim); margin-bottom: 22px;
+}
+.pin-input {
+  width: 160px; text-align: center; font-size: 1.5rem;
+  letter-spacing: .6em; padding: 12px 10px 12px 16px;
+  background: rgba(79,163,232,0.07);
+  border: 1.5px solid rgba(79,163,232,0.3);
+  border-radius: 12px; color: var(--white);
+  font-family: 'Lato', sans-serif; outline: none;
+  transition: border-color .3s, box-shadow .3s;
+}
+.pin-input:focus { border-color: var(--blue); box-shadow: 0 0 18px rgba(79,163,232,0.2); }
+.pin-btn {
+  margin-top: 18px; background: none;
+  border: 1.5px solid var(--blue); color: var(--glow);
+  font-family: 'Lato', sans-serif; font-size: .75rem;
+  letter-spacing: .25em; text-transform: uppercase;
+  padding: 12px 34px; border-radius: 50px; cursor: pointer;
+  transition: all .3s;
+}
+.pin-btn:hover { background: rgba(79,163,232,0.1); box-shadow: 0 0 22px rgba(126,200,255,0.25); }
+.pin-error {
+  margin-top: 12px; font-size: .75rem; color: #ff9a9a;
+  min-height: 1.1em; letter-spacing: .03em;
+}
+.note-lock.shake { animation: shakeErr .4s ease; }
+@keyframes shakeErr {
+  0%,100% { transform: translateX(0); }
+  20%,60% { transform: translateX(-8px); }
+  40%,80% { transform: translateX(8px); }
+}
+.note-content { display: none; }
+.note-content.unlocked { display: block; animation: letIn .6s ease; }
+
+.note-vid-ph {
+  margin-top: 30px; aspect-ratio: 16/9;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(79,163,232,0.15);
+  border-radius: 14px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px;
+}
+
+/* ── VIDEO SECTION ── */
+#video-section { background: rgba(4,10,24,0.95); }
+.vid-wrap {
+  width: 100%; max-width: 860px;
+  opacity: 0; transform: translateY(20px);
+  transition: opacity .9s ease, transform .9s ease,
+              box-shadow .05s ease;
+  will-change: box-shadow;
+}
+.vid-wrap.in { opacity: 1; transform: translateY(0); }
+.vid-border {
+  border-radius: 18px; overflow: hidden;
+  border: 1px solid rgba(79,163,232,0.2);
+}
+.vid-border iframe { display: block; width: 100%; aspect-ratio: 16/9; border: none; }
+.vid-ph {
+  aspect-ratio: 16/9; background: rgba(255,255,255,0.03);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 12px;
+}
+.vid-ph-icon { font-size: 2.8rem; opacity: 0.2; }
+.vid-ph-text { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1rem; color: rgba(126,200,255,0.25); }
+.vid-label {
+  margin-top: 18px; font-family: 'Playfair Display', serif;
+  font-style: italic; font-size: 1.05rem; color: var(--dim);
+  transition: color .05s ease;
+}
+
+/* ── FINALE ── */
+#finale { background: var(--bg); overflow: hidden; }
+.finale-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(3.5rem, 12vw, 10rem);
+  font-weight: 900; line-height: 1;
+  color: transparent;
+  background: linear-gradient(135deg, var(--white) 0%, var(--glow) 50%, var(--blue) 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text; background-clip: text;
+  animation: shimmer 3s ease infinite;
+  opacity: 0; transform: translateY(28px);
+  transition: opacity 1s ease, transform 1s ease,
+              text-shadow .05s ease, filter .05s ease;
+  will-change: filter;
+}
+.finale-title.in { opacity: 1; transform: translateY(0); }
+@keyframes shimmer { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+.finale-sub {
+  font-family: 'Playfair Display', serif; font-style: italic;
+  font-size: clamp(1rem, 2.5vw, 1.4rem); color: var(--dim);
+  margin-top: 16px; max-width: 480px;
+  opacity: 0; transition: opacity 1s .3s ease;
+}
+.finale-sub.in { opacity: 1; }
+.finale-sig {
+  margin-top: 28px; font-family: 'Playfair Display', serif;
+  font-style: italic; font-size: 1.1rem; color: var(--blue);
+  opacity: 0; transition: opacity 1s .5s ease;
+}
+.finale-sig.in { opacity: 1; }
+
+/* ── BIRTHDAY FLOATING EMOJIS ── */
+.bday-float {
+  position: fixed; pointer-events: none; z-index: 2;
+  animation: bdayFloat linear infinite;
+  font-size: 1.4rem; opacity: 0;
+  user-select: none;
+}
+@keyframes bdayFloat {
+  0%   { transform: translateY(0) rotate(0deg) scale(1);   opacity: 0; }
+  8%   { opacity: 0.75; }
+  92%  { opacity: 0.4; }
+  100% { transform: translateY(-105vh) rotate(25deg) scale(0.6); opacity: 0; }
+}
+
+/* ── CONFETTI CANVAS ── */
+#confetti { position: fixed; inset: 0; z-index: 2; pointer-events: none; }
+
+/* ── BIRTHDAY BANNER on opener ── */
+.opener-banner {
+  font-size: clamp(2rem, 8vw, 4rem);
+  margin-bottom: 8px; letter-spacing: -0.01em;
+  animation: bannerPop .6s cubic-bezier(0.34,1.56,0.64,1) forwards;
+}
+@keyframes bannerPop {
+  from { transform: scale(0.7); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.opener-cake {
+  font-size: 4rem; display: block; margin-bottom: 16px;
+  animation: cakeBob 1.8s ease-in-out infinite;
+}
+@keyframes cakeBob {
+  0%,100% { transform: translateY(0) rotate(-3deg); }
+  50%      { transform: translateY(-10px) rotate(3deg); }
+}
+.opener-age {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1rem, 3vw, 1.4rem);
+  color: var(--glow); letter-spacing: 0.15em;
+  margin-bottom: 28px; font-style: italic;
+}
+
+/* ── HERO birthday decorations ── */
+.hero-balloons {
+  position: absolute; top: 0; left: 0; right: 0;
+  display: flex; justify-content: space-between;
+  padding: 20px 40px; pointer-events: none; z-index: 1;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+}
+.balloon { animation: balloonSway 3s ease-in-out infinite; display: inline-block; }
+.balloon:nth-child(2) { animation-delay: .4s; }
+.balloon:nth-child(3) { animation-delay: .8s; }
+.balloon:nth-child(4) { animation-delay: 1.2s; }
+@keyframes balloonSway {
+  0%,100% { transform: rotate(-6deg) translateY(0); }
+  50%      { transform: rotate(6deg) translateY(-8px); }
+}
+.hero-bottom-deco {
+  position: absolute; bottom: 60px; left: 0; right: 0;
+  display: flex; justify-content: center; gap: 16px;
+  font-size: 1rem; pointer-events: none; z-index: 1;
+  opacity: 0; animation: fadeUp .8s 1.4s forwards;
+}
+
+/* ── LETTER birthday style ── */
+.let-heading-bold {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.1rem, 3vw, 1.5rem);
+  font-weight: 700; color: var(--glow);
+  margin-bottom: 20px; line-height: 1.3;
+}
+.let-divider {
+  border: none; border-top: 1px solid rgba(79,163,232,0.2);
+  margin: 28px 0;
+}
+.music-btn {
+  position: fixed; bottom: 28px; right: 28px; z-index: 500;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: rgba(79,163,232,0.15);
+  border: 1px solid rgba(79,163,232,0.3);
+  backdrop-filter: blur(10px); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; color: var(--white);
+  transition: background .3s, box-shadow .05s ease;
+  will-change: box-shadow;
+}
+.music-btn.playing { animation: spin 3s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── AUDIO DEBUG BANNER (only shows if something goes wrong) ── */
+#audio-debug {
+  position: fixed; left: 14px; bottom: 14px; z-index: 600;
+  max-width: 320px; display: none;
+  background: rgba(20,10,10,0.85); border: 1px solid rgba(255,120,120,0.4);
+  border-radius: 12px; padding: 12px 16px;
+  font-size: 0.75rem; line-height: 1.5; color: #ffd6d6;
+  font-family: 'Lato', sans-serif; backdrop-filter: blur(6px);
+}
+#audio-debug.show { display: block; }
+#audio-debug b { color: #ff9a9a; }
+
+/* ── SCROLL HINT ── */
+.scroll-more {
+  position: absolute; bottom: 20px; left: 50%;
+  transform: translateX(-50%); z-index: 10;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  cursor: pointer; opacity: 0; transition: opacity .5s ease;
+}
+.scroll-more.show { opacity: 1; }
+.sm-text { font-size: 0.55rem; letter-spacing: 0.28em; text-transform: uppercase; color: rgba(126,200,255,0.4); }
+.sm-arr span {
+  display: block; width: 8px; height: 8px; margin: 0 auto;
+  border-right: 1.5px solid rgba(126,200,255,0.4);
+  border-bottom: 1.5px solid rgba(126,200,255,0.4);
+  transform: rotate(45deg); animation: smB 1.4s ease-in-out infinite;
+}
+.sm-arr span:nth-child(2) { animation-delay: .15s; opacity: .5; }
+.sm-arr span:nth-child(3) { animation-delay: .3s; opacity: .2; }
+@keyframes smB { 0%,100% { transform: rotate(45deg) translateY(0); } 50% { transform: rotate(45deg) translateY(4px); } }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (max-width: 600px) {
+  .env-btn { padding: 36px 24px; }
+  .note-card { padding: 36px 22px; }
+}
+</style>
+</head>
+<body>
+
+<div class="cur" id="cur"></div>
+<div class="cur-ring" id="cur-ring"></div>
+
+<!-- Visualizer + stars behind everything -->
+<canvas id="viz"></canvas>
+<canvas id="confetti"></canvas>
+<canvas id="stars"></canvas>
+<div class="ptcls" id="ptcls"></div>
+
+<!-- Music start overlay -->
+<div id="opener">
+  <span class="opener-cake">🎂</span>
+  <p class="opener-banner">🎉 Happy Birthday! 🎉</p>
+  <p class="opener-age">Yashika Kutty · 19 Years ✦ August 23, 2026</p>
+  <p class="open-title">A birthday page made just for you</p>
+  <button class="open-btn" id="open-btn" onclick="startExperience()">
+    tap to begin 🎁
+  </button>
+  <p class="open-note">turn up your volume ✦</p>
+</div>
+
+<button class="music-btn" id="music-btn" onclick="toggleMusic()">🎵</button>
+<div id="audio-debug"></div>
+
+<!-- ═══════════ 1 — HERO ═══════════ -->
+<section id="hero">
+  <!-- Birthday balloons top -->
+  <div class="hero-balloons">
+    <span class="balloon">🎈</span>
+    <span class="balloon">🎀</span>
+    <span class="balloon">🎈</span>
+    <span class="balloon">🎊</span>
+  </div>
+
+  <!-- Beat rings -->
+  <div class="beat-ring" id="br1" style="width:300px;height:300px;"></div>
+  <div class="beat-ring" id="br2" style="width:500px;height:500px;"></div>
+  <div class="beat-ring" id="br3" style="width:700px;height:700px;"></div>
+
+  <p class="hero-tag">🎂 Happy 19th Birthday 🎂</p>
+  <h1 class="hero-name" id="hero-name">
+    Yashika<br><em>Kutty</em>
+  </h1>
+  <p class="hero-sub">Today the universe celebrates the day it made you — and so do I.</p>
+  <p class="hero-date">✦ August 23, 2026 ✦</p>
+
+  <!-- Bottom emoji row -->
+  <div class="hero-bottom-deco">
+    🎁 &nbsp; 🎊 &nbsp; 🕯️ &nbsp; 🎂 &nbsp; 🕯️ &nbsp; 🎊 &nbsp; 🎁
+  </div>
+</section>
+
+<!-- ═══════════ 2 — LETTER ═══════════ -->
+<section id="letter-section">
+  <p class="sec-eyebrow" id="ey1">a birthday letter</p>
+  <div class="envelope-wrap" id="env-wrap">
+    <div class="env-btn" id="env-btn" onclick="openLetter(event)">
+      <span class="env-icon">✉️</span>
+      <div class="env-h">I wrote you a letter</div>
+      <div class="env-s">tap to open it</div>
+    </div>
+    <div class="open-letter" id="open-letter">
+      <p class="let-greeting">My dearest Yashika Kutty,</p>
+
+      <p class="let-heading-bold">🥳 HAPPY 19th BIRTHDAY MAA!!! 💝</p>
+
+      <p class="let-p">Hi maa, inniku honestly unaku preparation konjum koruva pannite enna mannichuru seriya, oru jokane gift vanggi taralam naniche naa pore munnuku ana terile thu anthe mari gift ah ille illaiya nu. Ana Inniku unaku at least one of the oru marake mudiyathe ori birthday ah irukum seriya? ithu motha vaati naa proper ah unnoda birthday celeberation attend pandre un vitule.</p>
+
+      <p class="let-p">Nee eppome solluvele unnoda birthday pudikathu, yan porenthenu solluve. Ana inniku pathiya, unaku evlo nariya peru wish pannirkangga post pannirkangga. Athelam vittiru, Un akka ke terithu pathukoye unaku enna romba pudikum nu pathu vanggi vetchirku. I mean nane ethur pakule anthe car tha vaanggi tarum nu but Its Okay unaku 2 Car gift ah vanthurku heheheh. Athu mattum illame naanum inniku un kudave tha Irukuren whole day vaa. Unaku vitule cake vetturangga. Unnoda 21st birthday kandipa semmaya irukum ippave ipdi naa.</p>
+
+      <p class="let-p">Ana enna... Ithuku Aprom namme tirumbi meet pandrethuku kastam tha enna pandrathu... panne mudiyathunu ille ana romba kasatm at leas 6 ille 5 maasam kalichu tha ennna pake vendiya situation varum...</p>
+
+      <p class="let-p">But Baby romba strong. Baby is actually smart again just afraid and a bit lazy to explore new things maa. Athu naaliye nee apde give up panniruve just because you dont know... Sem 3 verikum naa irunthute ana athuku aprom nee tha unne pathukenum mukkiyumma unnoda assigntments leh tha romba nariya depends pannuve... ana Unnale mudiyum. Naa pore munnuku unaku naa help pandre epadi kattukenum nu.</p>
+
+      <p class="let-p">Baby naa illame romba kavale padathe, romba feel pannathe... Namme eppome Call leh irupuom seriya? Baby nalla sapdu, nalla thoongu, aprom health vishiyamtulle romba carefull ah and serious ah iru okay?</p>
+
+      <p class="let-p">Inniku Baby oda naal, baby oda Pirantha naal, mettha day vida intha day unnoda best day nanikiren un valkeile. So, make sure baby celeberate this Birthday at the heart content seriya? Nanum irukuren so lets Enjoy Your Day</p>
+
+      <p class="let-heading-bold">💙 HAPPY 19th BIRTHDAY MY LOVE 🎂</p>
+
+      <p class="let-sign">Yours, Future Husband Senior 💙</p>
+      <button class="close-btn" onclick="closeLetter()">close ✕</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 3 — NOTE ═══════════ -->
+<section id="note-section">
+  <p class="sec-eyebrow" id="ey2">something from the heart</p>
+  <div class="note-card" id="note-card">
+
+    <div class="note-lock" id="note-lock">
+      <span class="lock-icon">🔒</span>
+      <p class="lock-title">This part is just for you</p>
+      <p class="lock-sub">enter the pin to unlock</p>
+      <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4"
+             id="pin-input" class="pin-input" placeholder="• • • •" autocomplete="off">
+      <button class="pin-btn" onclick="checkPin()">Unlock</button>
+      <p class="pin-error" id="pin-error"></p>
+    </div>
+
+    <div class="note-content" id="note-content">
+      <h2 class="note-title" id="note-title">
+        Because today is not<br><em>just any other day.</em>
+      </h2>
+      <p class="note-p">Birthdays are just dates to most people. Yours is different to me. It is the day the world got a little warmer — the day someone who would change my whole life arrived.</p>
+      <p class="note-p">You don't always see how much light you carry, Yashika Kutty. But I see it every single day. In the smallest things. In the way you laugh. In the way you love — quietly, deeply, completely.</p>
+      <p class="note-p">Today is yours. Every candle belongs to you. Every wish is for you. And I'll be right here — the luckiest person in the room — because I get to be yours.</p>
+
+      <hr class="let-divider">
+
+      <p class="note-p">Amale... nyabagam iruka unnoda velentines Gift? Nambulku tha seriya terile thane namme oda couple panne anniversary epppa nu? Athule oru date irukum Nyabagam iruka? Yes 23 Aug, athuvum inniku tha unnoda birthday eh celeberation eh varuthu. Namme oru vaati veliya ponum thane appe Daksha vum irunthuchu, namme anthe mele lepak pannitu irunthum anthe taman leh... ana anggetha ennoda unkitenthu unnoda 1st kiss thanthe 🥰 Nane shock ah aiten athuvum mothe vaati oru girl kitte.</p>
+      <p class="note-p">Athelam marake mudiyuma enne. Eneku romba lucky en kuda nee pakkatulle irukuruthu. Rombave lucky ah feel pandre unna love pannathuku, un kuda time spend pannuthu, unna meet pannathu ellam... Anthe time leh nee poli mari ponena hmmm.... ithelam nadunthurkameliye poirukum, luckily nee marule. Again namme inniku birthday mattum illame namme nambuloda anniversary uhm kondardalam seriya? Namal Oda 1st Anniversary maa HAHAHA.</p>
+
+      <p class="let-heading-bold">Happy Anniversary Day Kannu !!! 😘</p>
+      <p class="let-sign">Yours, Future Husband Senior 💙</p>
+
+      <!-- ► SECOND video placeholder for this card ◄ -->
+      <div class="note-vid-ph">
+        <div class="vid-ph-icon">🎬</div>
+        <p class="vid-ph-text">A little video, just for you</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════ 4 — VIDEO ═══════════ -->
+<section id="video-section">
+  <p class="sec-eyebrow" id="ey3">just for you</p>
+  <div class="vid-wrap" id="vid-wrap">
+    <div class="vid-border" id="vid-border">
+      <!--
+        ► ADD YOUR YOUTUBE VIDEO ID BELOW
+        Delete the vid-ph div and uncomment the iframe, replacing VIDEO_ID_HERE
+      -->
+      <div class="vid-ph">
+        <div class="vid-ph-icon">🎬</div>
+        <p class="vid-ph-text">Your birthday video will appear here</p>
+      </div>
+      <!--
+      <iframe
+        src="https://www.youtube.com/embed/VIDEO_ID_HERE?rel=0&modestbranding=1&color=white"
+        title="Happy Birthday Yashika Kutty"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+      </iframe>
+      -->
+    </div>
+    <p class="vid-label" id="vid-label">Happy Birthday, my love 🌸</p>
+  </div>
+</section>
+
+<!-- ═══════════ 5 — FINALE ═══════════ -->
+<section id="finale">
+  <h2 class="finale-title" id="finale-title">Happy Birthday</h2>
+  <p class="finale-sub" id="finale-sub">May every wish you make today come true 🌸</p>
+  <p class="finale-sig" id="finale-sig">Yours, Future Husband Senior 💙</p>
+</section>
+
+<audio id="bgMusic" loop>
+  <source src="YashBirthdayMusic.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+// ── CURSOR ────────────────────────────────────────────────────
+const cur  = document.getElementById('cur');
+const cring = document.getElementById('cur-ring');
+document.addEventListener('mousemove', e => {
+  cur.style.left = e.clientX+'px'; cur.style.top = e.clientY+'px';
+  cring.style.left = e.clientX+'px'; cring.style.top = e.clientY+'px';
+});
+
+// ── STARS ─────────────────────────────────────────────────────
+const scnv = document.getElementById('stars');
+const sctx = scnv.getContext('2d');
+let stars = [];
+function initStars() {
+  scnv.width = window.innerWidth; scnv.height = window.innerHeight;
+  stars = Array.from({length: 200}, () => ({
+    x: Math.random()*scnv.width, y: Math.random()*scnv.height,
+    r: Math.random()*1.4+0.2, o: Math.random(),
+    s: Math.random()*0.006+0.002, d: Math.random()>.5?1:-1
+  }));
+}
+function drawStars(pulse) {
+  sctx.clearRect(0,0,scnv.width,scnv.height);
+  stars.forEach(s => {
+    s.o += s.s*s.d*(1 + pulse*2);
+    if(s.o>=1||s.o<=0) s.d*=-1;
+    const boost = 1 + pulse*2;
+    sctx.beginPath();
+    sctx.arc(s.x, s.y, s.r*boost, 0, Math.PI*2);
+    const b = Math.floor(200 + pulse*55);
+    sctx.fillStyle = `rgba(${b},${b+20},255,${s.o})`;
+    sctx.fill();
+  });
+}
+initStars();
+window.addEventListener('resize', initStars);
+
+// ── VISUALIZER ────────────────────────────────────────────────
+const vcnv = document.getElementById('viz');
+const vctx = vcnv.getContext('2d');
+function initViz() {
+  vcnv.width = window.innerWidth; vcnv.height = window.innerHeight;
+}
+initViz();
+window.addEventListener('resize', initViz);
+
+function drawViz(dataArray, bufLen, pulse) {
+  vctx.clearRect(0,0,vcnv.width,vcnv.height);
+
+  // Bottom bar visualizer
+  const barW = (vcnv.width / bufLen) * 2.5;
+  let x = 0;
+  for(let i=0; i<bufLen; i++) {
+    const v   = dataArray[i] / 255;
+    const h   = v * vcnv.height * 0.45;
+    const hue = 200 + v * 40;
+    const alpha = 0.3 + v * 0.5;
+    vctx.fillStyle = `hsla(${hue},80%,70%,${alpha})`;
+    // Bottom bars
+    vctx.fillRect(x, vcnv.height - h, barW-1, h);
+    // Mirror top bars (smaller)
+    vctx.globalAlpha = 0.2;
+    vctx.fillRect(x, 0, barW-1, h*0.4);
+    vctx.globalAlpha = 1;
+    x += barW + 1;
+  }
+
+  // Central circle pulse
+  const cx = vcnv.width/2, cy = vcnv.height/2;
+  const r  = 60 + pulse * 180;
+  const grd = vctx.createRadialGradient(cx,cy,0,cx,cy,r);
+  grd.addColorStop(0, `rgba(126,200,255,${pulse*0.35})`);
+  grd.addColorStop(1, 'rgba(126,200,255,0)');
+  vctx.beginPath();
+  vctx.arc(cx,cy,r,0,Math.PI*2);
+  vctx.fillStyle = grd;
+  vctx.fill();
+
+  // Outer rings
+  [1.4, 1.9, 2.5].forEach((m,i) => {
+    vctx.beginPath();
+    vctx.arc(cx, cy, r*m, 0, Math.PI*2);
+    vctx.strokeStyle = `rgba(79,163,232,${pulse*(0.4-i*0.1)})`;
+    vctx.lineWidth   = 1.5 - i*0.3;
+    vctx.stroke();
+  });
+}
+
+// ── WEB AUDIO + BEAT DETECTION ────────────────────────────────
+let audioCtx, analyser, source, dataArray, bufLen;
+let playing = false;
+let pulse   = 0;   // 0–1 current beat energy
+
+const audio  = document.getElementById('bgMusic');
+const mBtn   = document.getElementById('music-btn');
+
+function showAudioDebug(msg) {
+  const el = document.getElementById('audio-debug');
+  if (!el) return;
+  el.innerHTML = '<b>Music didn\'t play:</b> ' + msg;
+  el.classList.add('show');
+}
+
+// Fires if the browser can't even load the file (wrong name, wrong
+// path, wrong folder, corrupt file, unsupported format, etc.)
+audio.addEventListener('error', () => {
+  const codes = {1:'loading aborted',2:'network error',3:'file is corrupt or unsupported',4:'file not found / format not supported'};
+  const code = audio.error ? audio.error.code : null;
+  showAudioDebug('could not load "YashBirthdayMusic.mp3" (' + (codes[code] || 'unknown error') + '). Check that the file is in the same folder and the name matches exactly, including capitalization.');
+});
+
+function setupAudio() {
+  // Audio context is now created inside startExperience (user gesture)
+  // This is a no-op kept for toggleMusic compatibility
+}
+
+function tryPlay() {
+  if(!audioCtx) return; // not set up yet
+  const resumeStep = audioCtx.state === 'suspended' ? audioCtx.resume() : Promise.resolve();
+  resumeStep.then(() => audio.play()).then(() => {
+    playing = true;
+    mBtn.classList.add('playing');
+  }).catch((err)=>{ showAudioDebug(err.name + ': ' + err.message); });
+}
+
+function toggleMusic() {
+  if(playing) {
+    audio.pause(); playing = false; mBtn.classList.remove('playing');
+  } else { tryPlay(); }
+}
+
+// ── REACTIVE ELEMENTS ─────────────────────────────────────────
+const heroName   = document.getElementById('hero-name');
+const noteCard   = document.getElementById('note-card');
+const noteTitle  = document.getElementById('note-title');
+const finaleTitle = document.getElementById('finale-title');
+const vidWrap    = document.getElementById('vid-wrap');
+const vidLabel   = document.getElementById('vid-label');
+const br1 = document.getElementById('br1');
+const br2 = document.getElementById('br2');
+const br3 = document.getElementById('br3');
+const envBtn = document.getElementById('env-btn');
+
+function applyReaction(p) {
+  // Hero name — glow + scale
+  const g = Math.floor(p*180);
+  heroName.style.textShadow    = `0 0 ${20+p*80}px rgba(126,200,255,${p*0.9}), 0 0 ${60+p*120}px rgba(79,163,232,${p*0.5})`;
+  heroName.style.transform     = `scale(${1 + p*0.045})`;
+
+  // Beat rings
+  const ringScale1 = 1 + p*0.22;
+  const ringScale2 = 1 + p*0.14;
+  const ringScale3 = 1 + p*0.08;
+  br1.style.transform    = `translate(-50%,-50%) scale(${ringScale1})`;
+  br1.style.borderColor  = `rgba(126,200,255,${p*0.8})`;
+  br1.style.opacity      = p;
+  br2.style.transform    = `translate(-50%,-50%) scale(${ringScale2})`;
+  br2.style.borderColor  = `rgba(79,163,232,${p*0.5})`;
+  br2.style.opacity      = p*0.7;
+  br3.style.transform    = `translate(-50%,-50%) scale(${ringScale3})`;
+  br3.style.borderColor  = `rgba(44,106,173,${p*0.3})`;
+  br3.style.opacity      = p*0.4;
+
+  // Note card border glow
+  noteCard.style.boxShadow   = `0 0 ${p*60}px rgba(79,163,232,${p*0.3}), inset 0 0 ${p*20}px rgba(79,163,232,${p*0.05})`;
+  noteCard.style.borderColor = `rgba(79,163,232,${0.15 + p*0.6})`;
+  noteTitle.style.textShadow = `0 0 ${p*30}px rgba(126,200,255,${p*0.5})`;
+
+  // Finale glow
+  finaleTitle.style.filter   = `brightness(${1 + p*0.5}) drop-shadow(0 0 ${p*40}px rgba(126,200,255,${p*0.7}))`;
+
+  // Envelope card pulse
+  envBtn.style.boxShadow = `0 0 ${p*48}px rgba(79,163,232,${p*0.25})`;
+
+  // Music button glow
+  mBtn.style.boxShadow = `0 0 ${8 + p*32}px rgba(126,200,255,${0.2 + p*0.5})`;
+
+  // Body background tint
+  const tint = Math.floor(p*18);
+  document.body.style.background = `rgb(${6+tint*0.3},${8+tint*0.5},${16+tint})`;
+
+  // vid label color
+  if(vidLabel) vidLabel.style.color = `rgba(${180+Math.floor(p*75)},${220+Math.floor(p*35)},255,${0.5+p*0.5})`;
+}
+
+// Beat ring positions (centered on hero section)
+function positionRings() {
+  const hero = document.getElementById('hero');
+  const hr = hero.getBoundingClientRect();
+  const cx = hr.left + hr.width/2;
+  const cy = hr.top  + hr.height/2 + window.scrollY;
+  [br1,br2,br3].forEach(r => {
+    r.style.position = 'absolute';
+    r.style.left     = '50%';
+    r.style.top      = '50%';
+  });
+}
+positionRings();
+
+// ── CONFETTI ──────────────────────────────────────────────────
+const ccnv = document.getElementById('confetti');
+const cctx = ccnv.getContext('2d');
+let confetti = [];
+function initConfetti() { ccnv.width = window.innerWidth; ccnv.height = window.innerHeight; }
+initConfetti();
+window.addEventListener('resize', initConfetti);
+
+function launchConfetti() {
+  const colors = ['#7ec8ff','#4fa3e8','#ffffff','#a8d8ff','#ffd6e8','#ffe47a'];
+  for(let i=0; i<120; i++) {
+    confetti.push({
+      x: Math.random()*ccnv.width, y: -10,
+      w: Math.random()*8+4, h: Math.random()*14+6,
+      color: colors[Math.floor(Math.random()*colors.length)],
+      rot: Math.random()*360, rotV: (Math.random()-0.5)*6,
+      vx: (Math.random()-0.5)*4, vy: Math.random()*3+2,
+      alpha: 1
+    });
+  }
+}
+function drawConfetti() {
+  cctx.clearRect(0,0,ccnv.width,ccnv.height);
+  confetti = confetti.filter(c => c.alpha > 0.02);
+  confetti.forEach(c => {
+    c.x += c.vx; c.y += c.vy; c.rot += c.rotV;
+    c.vy += 0.04;
+    if(c.y > ccnv.height*0.7) c.alpha -= 0.012;
+    cctx.save();
+    cctx.globalAlpha = c.alpha;
+    cctx.translate(c.x, c.y);
+    cctx.rotate(c.rot * Math.PI/180);
+    cctx.fillStyle = c.color;
+    cctx.fillRect(-c.w/2, -c.h/2, c.w, c.h);
+    cctx.restore();
+  });
+}
+
+// ── ANIMATION LOOP ────────────────────────────────────────────
+let smoothPulse = 0;
+function loop() {
+  requestAnimationFrame(loop);
+
+  if(analyser && playing) {
+    analyser.getByteFrequencyData(dataArray);
+
+    // Bass energy (first ~10% of bins = low freq)
+    const bassEnd = Math.floor(bufLen * 0.1);
+    let bassSum = 0;
+    for(let i=0; i<bassEnd; i++) bassSum += dataArray[i];
+    const bassAvg = bassSum / bassEnd / 255;
+
+    // Smooth it so it doesn't snap
+    smoothPulse += (bassAvg - smoothPulse) * 0.25;
+    pulse = smoothPulse;
+
+    drawViz(dataArray, bufLen, pulse);
+    drawStars(pulse);
+    drawConfetti();
+    applyReaction(pulse);
+  } else {
+    // idle — gentle ambient
+    smoothPulse *= 0.92;
+    pulse = smoothPulse;
+    drawStars(0);
+    drawConfetti();
+    vctx.clearRect(0,0,vcnv.width,vcnv.height);
+    applyReaction(0);
+  }
+}
+loop();
+
+// ── FLOATING PARTICLES ────────────────────────────────────────
+const pg = document.getElementById('ptcls');
+const pch = ['✦','·','˚','❄','✿','°'];
+function spawnPt() {
+  const p = document.createElement('div');
+  p.className = 'pt';
+  p.textContent = pch[Math.floor(Math.random()*pch.length)];
+  p.style.left = Math.random()*100+'vw';
+  p.style.fontSize = (Math.random()*14+6)+'px';
+  p.style.color = `rgba(126,200,255,${Math.random()*0.6+0.2})`;
+  const d = Math.random()*14+7;
+  p.style.animationDuration = d+'s';
+  p.style.animationDelay = Math.random()*-d+'s';
+  pg.appendChild(p); setTimeout(()=>p.remove(), d*1000);
+}
+for(let i=0;i<20;i++) spawnPt();
+setInterval(spawnPt, 900);
+
+// ── SCROLL OBSERVER ───────────────────────────────────────────
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in'); });
+}, {threshold: 0.15});
+['ey1','ey2','ey3','env-wrap','note-card','vid-wrap',
+ 'finale-title','finale-sub','finale-sig'].forEach(id => {
+  const el = document.getElementById(id); if(el) obs.observe(el);
+});
+
+// ── SCROLL-MORE ───────────────────────────────────────────────
+const secIds = ['hero','letter-section','note-section','video-section'];
+const nextIds = ['letter-section','note-section','video-section','finale'];
+secIds.forEach((id, idx) => {
+  const sec = document.getElementById(id); if(!sec) return;
+  const el = document.createElement('div');
+  el.className = 'scroll-more';
+  el.innerHTML = `<p class="sm-text">scroll</p><div class="sm-arr"><span></span><span></span><span></span></div>`;
+  el.addEventListener('click', () => document.getElementById(nextIds[idx]).scrollIntoView({behavior:'smooth'}));
+  sec.appendChild(el);
+  new IntersectionObserver(entries => {
+    entries.forEach(e => el.classList.toggle('show', e.isIntersecting));
+  }, {threshold:0.5}).observe(sec);
+});
+
+// ── LETTER OPEN/CLOSE ─────────────────────────────────────────
+window.openLetter = function(e) {
+  const btn  = document.getElementById('env-btn');
+  const rect = btn.getBoundingClientRect();
+  const rip  = document.createElement('span');
+  rip.className = 'env-rip';
+  const sz = Math.max(rect.width, rect.height);
+  rip.style.cssText = `width:${sz}px;height:${sz}px;left:${e.clientX-rect.left-sz/2}px;top:${e.clientY-rect.top-sz/2}px`;
+  btn.appendChild(rip);
+  setTimeout(()=>rip.remove(), 700);
+  setTimeout(()=>{
+    btn.style.display = 'none';
+    document.getElementById('open-letter').classList.add('show');
+  }, 250);
+};
+window.closeLetter = function() {
+  document.getElementById('open-letter').classList.remove('show');
+  document.getElementById('env-btn').style.display = '';
+};
+
+// ── MYSTERY NOTE PIN LOCK ──────────────────────────────────────
+const NOTE_PIN = '2317';
+window.checkPin = function() {
+  const input   = document.getElementById('pin-input');
+  const lock    = document.getElementById('note-lock');
+  const content = document.getElementById('note-content');
+  const err     = document.getElementById('pin-error');
+
+  if (input.value.trim() === NOTE_PIN) {
+    err.textContent = '';
+    lock.style.display = 'none';
+    content.classList.add('unlocked');
+    launchConfetti();
+  } else {
+    err.textContent = "that's not quite it — try again 💙";
+    lock.classList.remove('shake');
+    void lock.offsetWidth; // restart the shake animation
+    lock.classList.add('shake');
+    input.value = '';
+    input.focus();
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  const pinInput = document.getElementById('pin-input');
+  if (pinInput) {
+    pinInput.addEventListener('keypress', e => {
+      if (e.key === 'Enter') checkPin();
+    });
+  }
+});
+
+// ── BIRTHDAY FLOATING EMOJIS ──────────────────────────────────
+const bdayEmojis = ['🎈','🎁','🎊','🎂','🕯️','🎀','✨','🌟','💙','🥳'];
+function spawnBdayEmoji() {
+  const el = document.createElement('div');
+  el.className = 'bday-float';
+  el.textContent = bdayEmojis[Math.floor(Math.random()*bdayEmojis.length)];
+  el.style.left = Math.random()*100+'vw';
+  el.style.fontSize = (Math.random()*18+10)+'px';
+  const d = Math.random()*14+8;
+  el.style.animationDuration = d+'s';
+  el.style.animationDelay = Math.random()*-4+'s';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), d*1000);
+}
+for(let i=0;i<15;i++) spawnBdayEmoji();
+setInterval(spawnBdayEmoji, 800);
+
+// ── START EXPERIENCE — guaranteed tap works ────────────────────
+window.startExperience = function() {
+  const op  = document.getElementById('opener');
+  const btn = document.getElementById('open-btn');
+  btn.textContent = '🎶 Loading...';
+  btn.disabled = true;
+
+  let proceeded = false;
+
+  // Always dismiss the opener and start the page — this is the only
+  // thing that actually reveals the site, so it must never depend on
+  // audio succeeding.
+  function proceed() {
+    if (proceeded) return;
+    proceeded = true;
+    op.classList.add('hide');
+    setTimeout(() => op.style.display='none', 800);
+    launchConfetti();
+    for(let i=0;i<10;i++) setTimeout(spawnBdayEmoji, i*120);
+  }
+
+  // Hard safety net: no matter what audio/AudioContext does (blocked,
+  // missing file, slow network, browser quirk), the page reveals
+  // within 1.5s of the tap.
+  setTimeout(proceed, 1500);
+
+  // Setup AudioContext inside user gesture
+  try {
+    if(!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      bufLen    = analyser.frequencyBinCount;
+      dataArray = new Uint8Array(bufLen);
+      source    = audioCtx.createMediaElementSource(audio);
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination);
+    }
+    const resumeStep = audioCtx.state === 'suspended' ? audioCtx.resume() : Promise.resolve();
+    resumeStep.then(() => audio.play()).then(() => {
+      playing = true;
+      mBtn.classList.add('playing');
+      proceed();
+    }).catch((err) => {
+      console.warn('Music could not autoplay (tap the note icon to try again):', err);
+      showAudioDebug(err.name + ': ' + err.message + ' — tap the 🎵 button in the corner to try again.');
+      proceed();
+    });
+  } catch(e) {
+    console.warn('Audio setup failed, continuing without visualizer sync:', e);
+    showAudioDebug((e.name || 'Error') + ': ' + e.message);
+    proceed();
+  }
+};
+</script>
+</body>
+</html>
